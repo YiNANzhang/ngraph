@@ -32,6 +32,22 @@
 #include "ngraph/serializer.hpp"
 #include "ngraph/util.hpp"
 
+#ifdef NGRAPH_DISTRIBUTED
+#include <mlsl.hpp>
+
+struct MlslInitilalizer
+{
+    MlslInitilalizer(int* argc, char** argv[])
+    {
+        MLSL::Environment::GetEnv().Init(argc, argv);
+    }
+    ~MlslInitilalizer()
+    {
+        MLSL::Environment::GetEnv().Finalize();
+    }
+};
+#endif
+
 using namespace std;
 using namespace ngraph;
 
@@ -256,6 +272,10 @@ OPTIONS
 )###";
         return 1;
     }
+
+#ifdef NGRAPH_DISTRIBUTED
+    MlslInitilalizer mlsl{&argc, &argv};
+#endif
 
     if (visualize)
     {
