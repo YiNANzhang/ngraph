@@ -92,6 +92,7 @@
 #include "ngraph/op/sum.hpp"
 #include "ngraph/op/tan.hpp"
 #include "ngraph/op/tanh.hpp"
+#include "ngraph/op/topk.hpp"
 #include "ngraph/runtime/cpu/cpu_kernel_emitters.hpp"
 #include "ngraph/runtime/cpu/cpu_op_annotations.hpp"
 #include "ngraph/runtime/cpu/mkldnn_utils.hpp"
@@ -2329,6 +2330,12 @@ namespace ngraph
             {
                 auto argmax = static_cast<const ngraph::op::ArgMax*>(node);
                 emitArgMinArgMax(args, out, argmax->get_reduction_axis(), "argmax", writer);
+            }
+
+            template <>
+            void CPU_Emitter::EMITTER_DECL(ngraph::op::TopK)
+            {
+                // TODO(silee2)
             }
 
             template <>
