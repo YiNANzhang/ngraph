@@ -919,8 +919,10 @@ static shared_ptr<ngraph::Function>
             else if (node_op == "TopK")
             {
                 auto axis = node_js.at("axis").get<size_t>();
+                auto k = node_js.at("k").get<size_t>();
+                auto compute_max = node_js.at("compute_max").get<bool>();
                 auto target_type = read_element_type(node_js.at("index_element_type"));
-                node = make_shared<op::TopK>(args[0], axis, target_type);
+                node = make_shared<op::TopK>(args[0], axis, target_type, k, compute_max);
             }
             else if (node_op == "StopGradient")
             {
@@ -1377,9 +1379,8 @@ static json write(const Node& n, bool binary_constant_data)
         auto tmp = dynamic_cast<const op::TopK*>(&n);
         node["axis"] = tmp->get_reduction_axis();
         node["index_element_type"] = write_element_type(tmp->get_element_type());
-        // TODO
-        // node["k"] = 
-        // node["compute_max"] = 
+        node["k"] = tmp->get_k();
+        node["compute_max"] = tmp->get_compute_max(); 
     }
 
     return node;

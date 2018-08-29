@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cmath>
+#include <algorithm>
 
 #include "ngraph/coordinate_transform.hpp"
 
@@ -28,29 +29,20 @@ namespace ngraph
         {
             template <typename T, typename U>
             void topk(
-                const T* arg, U* out, const Shape& in_shape, const Shape& out_shape, size_t axis)
+                const T* arg, U* out_indices, T* out_values, const Shape& in_shape, const Shape& out_indices_shape, const Shape & outvalues_shape, size_t axis, size_t k, bool compute_max)
             {
-                //take the first elements (i.e. 0 indices) in out_shape - axis as minimums
-                memset(out, 0, shape_size(out_shape) * sizeof(U));
+                vector<size_t> in_strides = ngraph::row_major_strides(in_shape);
+                size_t reduction_axes_stride = in_strides[axis];
+                in_strides.erase(in_strides.begin() + axis);
+                size_t in_index_axes_stride = in_strides[0];
 
-                AxisVector av{axis};
-                CoordinateTransform input_transform(in_shape);
+                vector<size_t> out_strides = ngraph::row_major_strides(out_shape);
+                size_t topk_axes_stride = out_strides[axis];
+                out_strides.erase(out_strides.begin() + axis);
+                size_t out_index_axes_stride = out_strides[0];
 
-                for (const Coordinate& input_coord : input_transform)
-                {
-                    Coordinate output_coord = project(input_coord, av);
-                    CoordinateTransform output_transform(out_shape);
-
-                    auto min_index = static_cast<size_t>(out[output_transform.index(output_coord)]);
-                    auto min_coord = input_coord;
-                    min_coord[axis] = min_index;
-                    if (arg[input_transform.index(input_coord)] <
-                        arg[input_transform.index(min_coord)])
-                    {
                         out[output_transform.index(output_coord)] =
                             static_cast<U>(input_coord[axis]);
-                    }
-                }
             }
         }
     }

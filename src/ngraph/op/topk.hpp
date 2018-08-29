@@ -50,6 +50,10 @@ namespace ngraph
             virtual std::shared_ptr<Node>
                 copy_with_new_args(const NodeVector& new_args) const override;
 
+            size_t get_k() { return m_k; }
+
+            bool get_compute_max() { return m_compute_max; }
+
         protected:
             size_t m_k;
             bool m_compute_max;

@@ -39,7 +39,8 @@ namespace ngraph
                 function<void(CPURuntimeContext*)> functor;
 
                 auto& arg_tensor = tensor_data[args[0].get_name()];
-                auto& out_tensor = tensor_data[out[0].get_name()];
+                auto& out_indices_tensor = tensor_data[out[0].get_name()];
+                auto& out_values_tensor = tensor_data[out[1].get_name()];
                 if (out[0].get_element_type() != element::i64 &&
                     out[0].get_element_type() != element::i32)
                 {
@@ -48,7 +49,10 @@ namespace ngraph
                 bool is_int64 = out[0].get_element_type() == element::i64;
                 auto axis = topk->get_reduction_axis();
                 auto in_shape = args[0].get_shape();
-                auto out_shape = out[0].get_shape();
+                auto out_indices_shape = out[0].get_shape();
+                auto out_values_shape = out[1].get_shape();
+                auto k = topk->get_k();
+                auto compute_max = topk->get_compute_max();
 
                 auto element_type = args[0].get_element_type();
                 if (element_type == element::f32)
@@ -58,10 +62,14 @@ namespace ngraph
                         functor = [&, in_shape, out_shape, axis](CPURuntimeContext* ctx) {
                             ngraph::runtime::reference::topk<float, int64_t>(
                                 static_cast<float*>(arg_tensor),
-                                static_cast<int64_t*>(out_tensor),
+                                static_cast<int64_t*>(out_indices_tensor),
+                                static_cast<float*>(out_values_tensor),
                                 in_shape,
-                                out_shape,
-                                axis);
+                                out_indice_shape,
+                                out_values_shape,
+                                axis,
+                                k,
+                                compute_max);
                         };
                     }
                     else
@@ -69,10 +77,14 @@ namespace ngraph
                         functor = [&, in_shape, out_shape, axis](CPURuntimeContext* ctx) {
                             ngraph::runtime::reference::topk<float, int32_t>(
                                 static_cast<float*>(arg_tensor),
-                                static_cast<int*>(out_tensor),
+                                static_cast<int32_t*>(out_indicies_tensor),
+                                static_cast<float*>(out_values_tensor),
                                 in_shape,
-                                out_shape,
-                                axis);
+                                out_indice_shape,
+                                out_values_shape,
+                                axis
+                                k,
+                                compute_max);
                         };
                     }
                 }
@@ -83,10 +95,14 @@ namespace ngraph
                         functor = [&, in_shape, out_shape, axis](CPURuntimeContext* ctx) {
                             ngraph::runtime::reference::topk<double, int64_t>(
                                 static_cast<double*>(arg_tensor),
-                                static_cast<int64_t*>(out_tensor),
+                                static_cast<int64_t*>(out_indices_tensor),
+                                static_cast<double*>(out_values_tensor),
                                 in_shape,
-                                out_shape,
-                                axis);
+                                out_indice_shape,
+                                out_values_shape,
+                                axis,
+                                k,
+                                compute_max);
                         };
                     }
                     else
@@ -94,10 +110,14 @@ namespace ngraph
                         functor = [&, in_shape, out_shape, axis](CPURuntimeContext* ctx) {
                             ngraph::runtime::reference::topk<double, int32_t>(
                                 static_cast<double*>(arg_tensor),
-                                static_cast<int*>(out_tensor),
+                                static_cast<int32_t*>(out_indices_tensor),
+                                static_cast<double*>(out_values_tensor),
                                 in_shape,
-                                out_shape,
-                                axis);
+                                out_indice_shape,
+                                out_values_shape,
+                                axis
+                                k,
+                                compute_max);
                         };
                     }
                 }
