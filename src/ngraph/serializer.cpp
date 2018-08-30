@@ -1380,7 +1380,7 @@ static json write(const Node& n, bool binary_constant_data)
         node["axis"] = tmp->get_reduction_axis();
         node["index_element_type"] = write_element_type(tmp->get_element_type());
         node["k"] = tmp->get_k();
-        node["compute_max"] = tmp->get_compute_max(); 
+        node["compute_max"] = tmp->get_compute_max();
     }
 
     return node;

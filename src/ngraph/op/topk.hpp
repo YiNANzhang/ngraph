@@ -38,7 +38,7 @@ namespace ngraph
             /// \param compute_max Compute top k max or top k min?
             TopK(const std::shared_ptr<Node>& arg,
                  size_t axis,
-                 const element::Type& index_element_type
+                 const element::Type& index_element_type,
                  size_t k = 0,
                  bool compute_max = true)
                 : IndexReduction("TopK", arg, axis, index_element_type),
@@ -50,9 +50,9 @@ namespace ngraph
             virtual std::shared_ptr<Node>
                 copy_with_new_args(const NodeVector& new_args) const override;
 
-            size_t get_k() { return m_k; }
+            size_t get_k() const { return m_k; }
 
-            bool get_compute_max() { return m_compute_max; }
+            bool get_compute_max() const { return m_compute_max; }
 
         protected:
             size_t m_k;
