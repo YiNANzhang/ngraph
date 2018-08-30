@@ -31,18 +31,67 @@ namespace ngraph
             void topk(
                 const T* arg, U* out_indices, T* out_values, const Shape& in_shape, const Shape& out_indices_shape, const Shape & outvalues_shape, size_t axis, size_t k, bool compute_max)
             {
-                vector<size_t> in_strides = ngraph::row_major_strides(in_shape);
-                size_t reduction_axes_stride = in_strides[axis];
-                in_strides.erase(in_strides.begin() + axis);
-                size_t in_index_axes_stride = in_strides[0];
+                // reorder source axis visit order and make "axis" inner most
+                size_t ndim = static_cast<size_t>(in_shape.size());
+                AxisVector axis_order(ndim);
+                std::iota(axis_order.begin(), axis_order.end(), 0);
+                axis_order.erase(axis_order.begin() + axis);
+                axis_order.push_back(axis);
+                std::vector<size_t> in_strides = ngraph::row_major_strides(in_shape);
+                std::vector<size_t> out_indices_strides = ngraph::row_major_strides(out_indices_shape);
+                std::vector<size_t> out_values_strides = ngraph::row_major_strides(out_values_shape);
 
-                vector<size_t> out_strides = ngraph::row_major_strides(out_shape);
-                size_t topk_axes_stride = out_strides[axis];
-                out_strides.erase(out_strides.begin() + axis);
-                size_t out_index_axes_stride = out_strides[0];
+                Cooridinate start_corner(ndim, 0);
+                std::vector<size_t> tmp_shape(ndim);
+                for(size_t i = 0; i < ndim ; i++)
+                {
+                    tmp_shape[i] = in_shape[i];
+                }
+                tmp_shape[axis] = 0;
+                Coordinate end_corner(tmp_shape);
+                // Create a CoordinateTransform that visits only the first element along "axis"
+                CoordinateTransform input_transform(in_shape,
+                        start_corner,
+                        end_corner,
+                        in_strides,
+                        axis_order);
+                CoordinateTransform output_indices_transform(out_indices_shape,
+                        start_corner,
+                        end_corner,
+                        out_indices_strides,
+                        axis_order);
+                CoordinateTransform output_values_transform(out_values_shape,
+                        start_corner,
+                        end_corner,
+                        out_values_strides,
+                        axis_order);
 
-                        out[output_transform.index(output_coord)] =
-                            static_cast<U>(input_coord[axis]);
+                auto out_indicies_iter = output_indices_transform.begin();
+                auto out_values_iter = output_values_transform.begin();
+                for(const Coordinate& in_coord: input_transfrom)
+                {
+                    auto index = input_transfrom.index(input_coord);
+                    std::vector<std::tuple<T, U>> workspace(in_shape[axis]);
+                    for(U i = 0; i < ; i++)
+                    {
+                        workspace[i] = std::make_tuple(arg[index], i);
+                        index += in_strides[axis];
+                    }
+                    std::sort(workspace.begin(),
+                            workspace.end(),
+                            compute_max ? [] (const std::tuple<T, U>&  a, const std::tuple<T, U>& b) -> bool { return a > b;} : [] (const std::tuple<T, U>&  a, const std::tuple<T, U>& b) -> bool { return a < b;});
+                    auto out_indices_index = output_indices_transform.index(*out_indices_iter);
+                    auto out_values_index = output_values_transform.index(*out_values_iter);
+                    for(size_t i = 0; i < k ; i++)
+                    {
+                        out_indices[out_indices_index]=workspace[i].get(1);
+                        out_values[out_values_index]=workspace[i].get(0);
+                        out_indices_index += out_indices_strides[axis];
+                        out_values_index += out_values_strides[axis];
+                    }
+                    out_indices_iter++;
+                    out_values_iter++;
+                }
             }
         }
     }
