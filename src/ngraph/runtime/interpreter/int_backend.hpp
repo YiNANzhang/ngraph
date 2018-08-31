@@ -1038,7 +1038,7 @@ private:
                                               args[0]->get_shape(),
                                               out[0]->get_shape(),
                                               out[1]->get_shape(),
-                                              topk->get_reduction_axis(),
+                                              topk->get_topk_axis(),
                                               topk->get_k(),
                                               topk->get_compute_max());
             }
@@ -1050,7 +1050,7 @@ private:
                                               args[0]->get_shape(),
                                               out[0]->get_shape(),
                                               out[1]->get_shape(),
-                                              topk->get_reduction_axis(),
+                                              topk->get_topk_axis(),
                                               topk->get_k(),
                                               topk->get_compute_max());
             }

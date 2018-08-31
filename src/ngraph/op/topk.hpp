@@ -16,47 +16,49 @@
 
 #pragma once
 
+#include <utility>
 #include "ngraph/axis_set.hpp"
 #include "ngraph/graph_util.hpp"
-#include "ngraph/op/util/index_reduction.hpp"
-#include "ngraph/op/util/requires_tensor_view_args.hpp"
+#include "ngraph/op/op.hpp"
 
 namespace ngraph
 {
     namespace op
     {
         //brief Computes indices of top k maximum/minimum index along a specified axis for a given tensor
-        class TopK : public op::util::IndexReduction
+        class TopK : public Op
         {
         public:
             /// \brief Constructs a TopK operation.
             ///
             /// \param arg The input tensor
-            /// \param axis The axis along which to compute top k indices
+            /// \param topk_axis The axis along which to compute top k indices
             /// \param index_element_type produce indices. Currently, only int64 or int32 are supported
             /// \param k Number of top indices to compute. Compute all indices if k = 0
             /// \param compute_max Compute top k max or top k min?
             TopK(const std::shared_ptr<Node>& arg,
-                 size_t axis,
+                 size_t topk_axis,
                  const element::Type& index_element_type,
                  size_t k = 0,
-                 bool compute_max = true)
-                : IndexReduction("TopK", arg, axis, index_element_type),
-                  m_k(k),
-                  m_compute_max(compute_max)
-            {
-            }
+                 bool compute_max = true);
+
+            void validate_and_infer_types() override;
 
             virtual std::shared_ptr<Node>
                 copy_with_new_args(const NodeVector& new_args) const override;
 
+            size_t get_topk_axis() const { return m_topk_axis; }
+            element::Type get_index_element_type() const { return m_index_element_type; }
             size_t get_k() const { return m_k; }
-
             bool get_compute_max() const { return m_compute_max; }
 
         protected:
+            size_t m_topk_axis;
+            element::Type m_index_element_type;
             size_t m_k;
             bool m_compute_max;
+            virtual void generate_adjoints(autodiff::Adjoints& adjoints,
+                                           const NodeVector& deltas) override;
         };
     }
 }

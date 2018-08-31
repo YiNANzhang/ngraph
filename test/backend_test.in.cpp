@@ -9011,7 +9011,7 @@ NGRAPH_TEST(${BACKEND_NAME}, topk_max_trivial_partial)
     backend->call_with_validate(f0, {result0}, {a});
     EXPECT_EQ((vector<int32_t>{1, 3, 0, 0, 1, 3}), read_vector<int32_t>(result0));
     backend->call_with_validate(f1, {result1}, {a});
-    EXPECT_EQ((vector<float>{12, 11, 10, 9, 8, 7}), read_vector<float>(result0));
+    EXPECT_EQ((vector<float>{12, 11, 10, 9, 8, 7}), read_vector<float>(result1));
 }
 
 NGRAPH_TEST(${BACKEND_NAME}, topk_max_trivial_one)

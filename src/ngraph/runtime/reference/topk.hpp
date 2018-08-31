@@ -83,7 +83,9 @@ namespace ngraph
                     }
                     std::sort(workspace.begin(),
                             workspace.end(),
-                            compute_max ? [] (const std::tuple<T, U>&  a, const std::tuple<T, U>& b) -> bool { return a > b;} : [] (const std::tuple<T, U>&  a, const std::tuple<T, U>& b) -> bool { return a < b;});
+                            compute_max ?
+                                [] (const std::tuple<T, U>&  a, const std::tuple<T, U>& b) -> bool { return a > b;} :
+                                [] (const std::tuple<T, U>&  a, const std::tuple<T, U>& b) -> bool { return a < b;});
                     auto out_indices_index = output_indices_transform.index(*out_indices_iter);
                     auto out_values_index = output_values_transform.index(*out_values_iter);
                     for(size_t i = 0; i < k ; i++)

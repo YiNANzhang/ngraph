@@ -47,7 +47,7 @@ namespace ngraph
                     throw ngraph_error("Unsupported index element type");
                 }
                 bool is_int64 = out[0].get_element_type() == element::i64;
-                auto axis = topk->get_reduction_axis();
+                auto axis = topk->get_topk_axis();
                 auto in_shape = args[0].get_shape();
                 auto out_indices_shape = out[0].get_shape();
                 auto out_values_shape = out[1].get_shape();
