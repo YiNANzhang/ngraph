@@ -115,7 +115,7 @@
 #include "ngraph/op/sum.hpp"
 #include "ngraph/op/tan.hpp"
 #include "ngraph/op/tanh.hpp"
-#include "ngraph/op/topk"
+#include "ngraph/op/topk.hpp"
 #include "ngraph/pass/algebraic_simplification.hpp"
 #include "ngraph/pass/common_function_collection.hpp"
 #include "ngraph/pass/core_fusion.hpp"

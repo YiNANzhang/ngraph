@@ -18,6 +18,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <numeric>
 
 #include "ngraph/coordinate_transform.hpp"
 
@@ -29,7 +30,7 @@ namespace ngraph
         {
             template <typename T, typename U>
             void topk(
-                const T* arg, U* out_indices, T* out_values, const Shape& in_shape, const Shape& out_indices_shape, const Shape & outvalues_shape, size_t axis, size_t k, bool compute_max)
+                const T* arg, U* out_indices, T* out_values, const Shape& in_shape, const Shape& out_indices_shape, const Shape & out_values_shape, size_t axis, size_t k, bool compute_max)
             {
                 // reorder source axis visit order and make "axis" inner most
                 size_t ndim = static_cast<size_t>(in_shape.size());
@@ -41,7 +42,7 @@ namespace ngraph
                 std::vector<size_t> out_indices_strides = ngraph::row_major_strides(out_indices_shape);
                 std::vector<size_t> out_values_strides = ngraph::row_major_strides(out_values_shape);
 
-                Cooridinate start_corner(ndim, 0);
+                Coordinate start_corner(ndim, 0);
                 std::vector<size_t> tmp_shape(ndim);
                 for(size_t i = 0; i < ndim ; i++)
                 {
@@ -66,16 +67,19 @@ namespace ngraph
                         out_values_strides,
                         axis_order);
 
-                auto out_indicies_iter = output_indices_transform.begin();
+                auto out_indices_iter = output_indices_transform.begin();
                 auto out_values_iter = output_values_transform.begin();
-                for(const Coordinate& in_coord: input_transfrom)
+                std::vector<std::tuple<T, U>> workspace(in_shape[axis]);
+                for(const Coordinate& in_coord: input_transform)
                 {
-                    auto index = input_transfrom.index(input_coord);
-                    std::vector<std::tuple<T, U>> workspace(in_shape[axis]);
-                    for(U i = 0; i < ; i++)
+                    auto index = input_transform.index(in_coord);
+                    U i = 0;
+                    for(std::tuple<T, U> &entry : workspace)
                     {
-                        workspace[i] = std::make_tuple(arg[index], i);
+                        std::get<0>(entry) = arg[index];
+                        std::get<1>(entry) = i;
                         index += in_strides[axis];
+                        i++;
                     }
                     std::sort(workspace.begin(),
                             workspace.end(),
@@ -84,8 +88,8 @@ namespace ngraph
                     auto out_values_index = output_values_transform.index(*out_values_iter);
                     for(size_t i = 0; i < k ; i++)
                     {
-                        out_indices[out_indices_index]=workspace[i].get(1);
-                        out_values[out_values_index]=workspace[i].get(0);
+                        out_indices[out_indices_index]=std::get<1>(workspace[i]);
+                        out_values[out_values_index]=std::get<0>(workspace[i]);
                         out_indices_index += out_indices_strides[axis];
                         out_values_index += out_values_strides[axis];
                     }

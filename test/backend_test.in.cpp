@@ -8974,7 +8974,7 @@ NGRAPH_TEST(${BACKEND_NAME}, topk_max_trivial_all)
         make_shared<Function>(make_shared<op::GetOutputElement>(B, 0), op::ParameterVector{A});
     auto f1 =
         make_shared<Function>(make_shared<op::GetOutputElement>(B, 1), op::ParameterVector{A});
-c
+
     auto backend = runtime::Backend::create("${BACKEND_NAME}");
 
     // Create some tensors for input/output

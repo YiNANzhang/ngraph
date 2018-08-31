@@ -1037,8 +1037,10 @@ private:
                                               out[1]->get_data_ptr<T>(),
                                               args[0]->get_shape(),
                                               out[0]->get_shape(),
-                                              out[1]->get_shape()
-                                              topk->get_reduction_axis());
+                                              out[1]->get_shape(),
+                                              topk->get_reduction_axis(),
+                                              topk->get_k(),
+                                              topk->get_compute_max());
             }
             else if (out[0]->get_element_type() == element::i32)
             {
@@ -1048,7 +1050,9 @@ private:
                                               args[0]->get_shape(),
                                               out[0]->get_shape(),
                                               out[1]->get_shape(),
-                                              topk->get_reduction_axis());
+                                              topk->get_reduction_axis(),
+                                              topk->get_k(),
+                                              topk->get_compute_max());
             }
             else
             {
