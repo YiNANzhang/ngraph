@@ -30,73 +30,64 @@ namespace ngraph
         {
             template <typename T, typename U>
             void topk(
-                const T* arg, U* out_indices, T* out_values, const Shape& in_shape, const Shape& out_indices_shape, const Shape & out_values_shape, size_t axis, size_t k, bool compute_max)
+                const T* arg, U* out_indices, T* out_values, const Shape& in_shape, const Shape& out_shape, size_t axis, size_t k, bool compute_max)
             {
                 // reorder source axis visit order and make "axis" inner most
                 size_t ndim = static_cast<size_t>(in_shape.size());
+                Coordinate start_corner(ndim, 0);
+                Coordinate end_corner(in_shape);
+                end_corner[axis] = 1;
+                Strides strides(ndim, 1);
                 AxisVector axis_order(ndim);
                 std::iota(axis_order.begin(), axis_order.end(), 0);
                 axis_order.erase(axis_order.begin() + axis);
                 axis_order.push_back(axis);
-                std::vector<size_t> in_strides = ngraph::row_major_strides(in_shape);
-                std::vector<size_t> out_indices_strides = ngraph::row_major_strides(out_indices_shape);
-                std::vector<size_t> out_values_strides = ngraph::row_major_strides(out_values_shape);
-
-                Coordinate start_corner(ndim, 0);
-                std::vector<size_t> tmp_shape(ndim);
-                for(size_t i = 0; i < ndim ; i++)
-                {
-                    tmp_shape[i] = in_shape[i];
-                }
-                tmp_shape[axis] = 0;
-                Coordinate end_corner(tmp_shape);
-                // Create a CoordinateTransform that visits only the first element along "axis"
+                // Create CoordinateTransforms that visits only the first element along "axis"
                 CoordinateTransform input_transform(in_shape,
                         start_corner,
                         end_corner,
-                        in_strides,
+                        strides,
                         axis_order);
-                CoordinateTransform output_indices_transform(out_indices_shape,
+                CoordinateTransform output_transform(out_shape,
                         start_corner,
                         end_corner,
-                        out_indices_strides,
+                        strides,
                         axis_order);
-                CoordinateTransform output_values_transform(out_values_shape,
-                        start_corner,
-                        end_corner,
-                        out_values_strides,
-                        axis_order);
-
-                auto out_indices_iter = output_indices_transform.begin();
-                auto out_values_iter = output_values_transform.begin();
+                // Create temp vector for sorting.
                 std::vector<std::tuple<T, U>> workspace(in_shape[axis]);
-                for(const Coordinate& in_coord: input_transform)
+                std::vector<size_t> in_strides = ngraph::row_major_strides(in_shape);
+                std::vector<size_t> out_strides = ngraph::row_major_strides(out_shape);
+                auto in_axis_stride = in_strides[axis];
+                auto out_axis_stride = out_strides[axis];
+                for(const Coordinate& coord: input_transform)
                 {
-                    auto index = input_transform.index(in_coord);
+                    auto arg_index = input_transform.index(coord);
+                    auto out_index = output_transform.index(coord);
+                    // Fill the temp vector
                     U i = 0;
                     for(std::tuple<T, U> &entry : workspace)
                     {
-                        std::get<0>(entry) = arg[index];
+                        // std::cout << "Read arg[" << arg_index << "]" <<std::endl;
+                        std::get<0>(entry) = arg[arg_index];
                         std::get<1>(entry) = i;
-                        index += in_strides[axis];
+                        arg_index += in_axis_stride;
                         i++;
                     }
+                    // Sort the temp vector
                     std::sort(workspace.begin(),
                             workspace.end(),
                             compute_max ?
                                 [] (const std::tuple<T, U>&  a, const std::tuple<T, U>& b) -> bool { return a > b;} :
                                 [] (const std::tuple<T, U>&  a, const std::tuple<T, U>& b) -> bool { return a < b;});
-                    auto out_indices_index = output_indices_transform.index(*out_indices_iter);
-                    auto out_values_index = output_values_transform.index(*out_values_iter);
+                    // Write temp vector to output
                     for(size_t i = 0; i < k ; i++)
                     {
-                        out_indices[out_indices_index]=std::get<1>(workspace[i]);
-                        out_values[out_values_index]=std::get<0>(workspace[i]);
-                        out_indices_index += out_indices_strides[axis];
-                        out_values_index += out_values_strides[axis];
+                        std::tuple<T, U> entry = workspace[i];
+                        // std::cout << "Write out[" << out_index << "]" <<std::endl;
+                        out_values[out_index]=std::get<0>(entry);
+                        out_indices[out_index]=std::get<1>(entry);
+                        out_index += out_axis_stride;
                     }
-                    out_indices_iter++;
-                    out_values_iter++;
                 }
             }
         }

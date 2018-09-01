@@ -49,8 +49,7 @@ namespace ngraph
                 bool is_int64 = out[0].get_element_type() == element::i64;
                 auto axis = topk->get_topk_axis();
                 auto in_shape = args[0].get_shape();
-                auto out_indices_shape = out[0].get_shape();
-                auto out_values_shape = out[1].get_shape();
+                auto out_shape = out[0].get_shape();
                 auto k = topk->get_k();
                 auto compute_max = topk->get_compute_max();
 
@@ -59,14 +58,13 @@ namespace ngraph
                 {
                     if (is_int64)
                     {
-                        functor = [&, in_shape, out_indices_shape, out_values_shape, axis, k, compute_max](CPURuntimeContext* ctx) {
+                        functor = [&, in_shape, out_shape, axis, k, compute_max](CPURuntimeContext* ctx) {
                             ngraph::runtime::reference::topk<float, int64_t>(
                                 static_cast<float*>(arg_tensor),
                                 static_cast<int64_t*>(out_indices_tensor),
                                 static_cast<float*>(out_values_tensor),
                                 in_shape,
-                                out_indices_shape,
-                                out_values_shape,
+                                out_shape,
                                 axis,
                                 k,
                                 compute_max);
@@ -74,14 +72,13 @@ namespace ngraph
                     }
                     else
                     {
-                        functor = [&, in_shape, out_indices_shape, out_values_shape, axis, k, compute_max](CPURuntimeContext* ctx) {
+                        functor = [&, in_shape, out_shape, axis, k, compute_max](CPURuntimeContext* ctx) {
                             ngraph::runtime::reference::topk<float, int32_t>(
                                 static_cast<float*>(arg_tensor),
                                 static_cast<int32_t*>(out_indices_tensor),
                                 static_cast<float*>(out_values_tensor),
                                 in_shape,
-                                out_indices_shape,
-                                out_values_shape,
+                                out_shape,
                                 axis,
                                 k,
                                 compute_max);
@@ -92,14 +89,13 @@ namespace ngraph
                 {
                     if (is_int64)
                     {
-                        functor = [&, in_shape, out_indices_shape, out_values_shape, axis, k, compute_max](CPURuntimeContext* ctx) {
+                        functor = [&, in_shape, out_shape, axis, k, compute_max](CPURuntimeContext* ctx) {
                             ngraph::runtime::reference::topk<double, int64_t>(
                                 static_cast<double*>(arg_tensor),
                                 static_cast<int64_t*>(out_indices_tensor),
                                 static_cast<double*>(out_values_tensor),
                                 in_shape,
-                                out_indices_shape,
-                                out_values_shape,
+                                out_shape,
                                 axis,
                                 k,
                                 compute_max);
@@ -107,14 +103,13 @@ namespace ngraph
                     }
                     else
                     {
-                        functor = [&, in_shape, out_indices_shape, out_values_shape, axis, k, compute_max](CPURuntimeContext* ctx) {
+                        functor = [&, in_shape, out_shape, axis, k, compute_max](CPURuntimeContext* ctx) {
                             ngraph::runtime::reference::topk<double, int32_t>(
                                 static_cast<double*>(arg_tensor),
                                 static_cast<int32_t*>(out_indices_tensor),
                                 static_cast<double*>(out_values_tensor),
                                 in_shape,
-                                out_indices_shape,
-                                out_values_shape,
+                                out_shape,
                                 axis,
                                 k,
                                 compute_max);

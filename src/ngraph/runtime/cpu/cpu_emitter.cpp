@@ -2335,7 +2335,25 @@ namespace ngraph
             template <>
             void CPU_Emitter::EMITTER_DECL(ngraph::op::TopK)
             {
-                // TODO(silee2)
+                auto topk = static_cast<const ngraph::op::TopK*>(node);
+                if (out[0].get_element_type() != element::i64 &&
+                    out[0].get_element_type() != element::i32)
+                {
+                    throw ngraph_error("Unsupported index element type");
+                }
+
+                writer.block_begin();
+                writer << "reference::topk<" << args[0].get_type() << ", "
+                       << out[0].get_element_type().c_type_string() << ">(" << args[0].get_name()
+                       << ",\n";
+                writer << "                   " << out[0].get_name() << ",\n";
+                writer << "                   " << out[1].get_name() << ",\n";
+                writer << "                   {" << join(args[0].get_shape()) << "},\n";
+                writer << "                   {" << join(out[0].get_shape()) << "},\n";
+                writer << "                   " << topk->get_topk_axis() << ",\n";
+                writer << "                   " << topk->get_k() << ",\n";
+                writer << "                   " << topk->get_compute_max() << ");\n";
+                writer.block_end();
             }
 
             template <>
